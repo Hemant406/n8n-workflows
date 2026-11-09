@@ -1,0 +1,479 @@
+{
+  "name": "AI_Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### Steps\n1. Read the code related mail --> trigger\n2. Summarize the code using LLM\n3. Generate the comments for the code\n4. Step 2 and 3 to be done in parallel \n5. Merge the outputs of step 2 and 3\n6. Send the output to me as  mail",
+        "height": 240,
+        "width": 352,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1232,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "8a6f8832-e38a-4f30-a5be-c9216bfc1c9b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "sender": "hemantpande446@gmail.com"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -848,
+        96
+      ],
+      "id": "5e16fd47-c619-4583-a7d6-6508d2c3bfed",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SO62SmZmFCsAWkGU",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Given the code below\nCode :\n{{ $json.text }}\ngenerate comments for the code so that I can understand what each line of the code does. \nNOTE: Do not modify the existing code lines at all.\nJust add the comments wherever required.\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a helpful assistant and know how to write code in python. You can help me to understand the code by adding comments to it."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -624,
+        -208
+      ],
+      "id": "912a683b-b92d-420a-8d3a-205142b21172",
+      "name": "Comments_Additon"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Given the code below\nCode :\n{{ $json.text }}\ngenerate a summary of what this code does in very simple language. Do note that the summary should contain all the important details there are in the code so that I know what the code is about in a quick glance.\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in python code. You have the ability to summarize the code in simple language and have the knack to cover important details in the summary."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -624,
+        304
+      ],
+      "id": "8459841f-a60a-491b-864f-32c1a6f5cb50",
+      "name": "Code_Summary"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        32
+      ],
+      "id": "68898a6e-c6c9-42c1-8318-743362543391",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "n4hPc4ey4a4LN7dm",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        528
+      ],
+      "id": "1f811aba-fa0a-4487-b2d3-9350583a741f",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "n4hPc4ey4a4LN7dm",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -272,
+        96
+      ],
+      "id": "27260e6f-6239-4ff9-a449-ff69a5b0f4b3",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        96
+      ],
+      "id": "e2873ddd-9e36-455c-9cf8-cb090922b632",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "hemantpande446@gmail.com",
+        "subject": "Code Summary and Comments",
+        "message": "=\n{{ $json.text }}\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        96
+      ],
+      "id": "5666e607-2712-4253-8c66-b682ba771170",
+      "name": "Send a message",
+      "webhookId": "b604f60e-5748-40e3-8738-37ca2cd5b6a5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SO62SmZmFCsAWkGU",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Convert the message into html format.\nInclude proper code blocks wherever necessary. The\ncode blocks should have syntax highlighting for the\nspecific language used in the code\n\nMessage:\n{{ $json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You can convert any message into html format that can be sent on mail to the user"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        176,
+        96
+      ],
+      "id": "1c64c642-8c9c-4d72-984f-1b2bfec49506",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        336
+      ],
+      "id": "dc33e691-b6f8-46e4-afd3-7e7781c596d5",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "n4hPc4ey4a4LN7dm",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "1a1becbf173a1d56",
+          "threadId": "1a1becba92ab1fb4",
+          "labelIds": [
+            "IMPORTANT",
+            "SENT",
+            "INBOX"
+          ],
+          "sizeEstimate": 2620,
+          "headers": {
+            "mime-version": "MIME-Version: 1.0",
+            "date": "Date: Mon, 9 Nov 2026 11:03:18 +0530",
+            "message-id": "Message-ID: <CAHsh+DNjGF-DbFy5Kvq2htKT7ygRpNTBQ=gYamELVkw3Fo5bwQ@mail.gmail.com>",
+            "subject": "Subject: Basic Python Code",
+            "from": "From: Hemant Pande <hemantpande446@gmail.com>",
+            "to": "To: Hemant Pande <hemantpande446@gmail.com>",
+            "content-type": "Content-Type: multipart/alternative; boundary=\"000000000000a8ecfd065fd14ce5\""
+          },
+          "html": "<div dir=\"ltr\">from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score<br>import matplotlib.pyplot as plt<br><br>y_actual = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]<br><br>y_predicted = [1, 0, 1, 0, 0, 1, 1, 0, 1, 0]<br><br>accuracy = accuracy_score(y_actual, y_predicted)<br>precision = precision_score(y_actual, y_predicted)<br>recall = recall_score(y_actual, y_predicted)<br>f1 = f1_score(y_actual, y_predicted)<br><br>print(&quot;Accuracy :&quot;, accuracy)<br>print(&quot;Precision:&quot;, precision)<br>print(&quot;Recall   :&quot;, recall)<br>print(&quot;F1 Score :&quot;, f1)<br><br>metrics = [&quot;Accuracy&quot;, &quot;Precision&quot;, &quot;Recall&quot;, &quot;F1 Score&quot;]<br>values = [accuracy, precision, recall, f1]<br><br>plt.bar(metrics, values)<br><br>plt.xlabel(&quot;Evaluation Metrics&quot;)<br>plt.ylabel(&quot;Score&quot;)<br>plt.title(&quot;Model Performance Evaluation&quot;)<br><br>plt.ylim(0, 1)<br><br>for i in range(len(values)):<br>    plt.text(i, values[i] + 0.02, round(values[i], 2), ha=&#39;center&#39;)<br><br>plt.show()</div>\n",
+          "text": "from sklearn.metrics import accuracy_score, precision_score, recall_score,\nf1_score\nimport matplotlib.pyplot as plt\n\ny_actual = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]\n\ny_predicted = [1, 0, 1, 0, 0, 1, 1, 0, 1, 0]\n\naccuracy = accuracy_score(y_actual, y_predicted)\nprecision = precision_score(y_actual, y_predicted)\nrecall = recall_score(y_actual, y_predicted)\nf1 = f1_score(y_actual, y_predicted)\n\nprint(\"Accuracy :\", accuracy)\nprint(\"Precision:\", precision)\nprint(\"Recall   :\", recall)\nprint(\"F1 Score :\", f1)\n\nmetrics = [\"Accuracy\", \"Precision\", \"Recall\", \"F1 Score\"]\nvalues = [accuracy, precision, recall, f1]\n\nplt.bar(metrics, values)\n\nplt.xlabel(\"Evaluation Metrics\")\nplt.ylabel(\"Score\")\nplt.title(\"Model Performance Evaluation\")\n\nplt.ylim(0, 1)\n\nfor i in range(len(values)):\n    plt.text(i, values[i] + 0.02, round(values[i], 2), ha='center')\n\nplt.show()\n",
+          "textAsHtml": "<p>from sklearn.metrics import accuracy_score, precision_score, recall_score,<br/>f1_score<br/>import matplotlib.pyplot as plt</p><p>y_actual = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]</p><p>y_predicted = [1, 0, 1, 0, 0, 1, 1, 0, 1, 0]</p><p>accuracy = accuracy_score(y_actual, y_predicted)<br/>precision = precision_score(y_actual, y_predicted)<br/>recall = recall_score(y_actual, y_predicted)<br/>f1 = f1_score(y_actual, y_predicted)</p><p>print(&quot;Accuracy :&quot;, accuracy)<br/>print(&quot;Precision:&quot;, precision)<br/>print(&quot;Recall   :&quot;, recall)<br/>print(&quot;F1 Score :&quot;, f1)</p><p>metrics = [&quot;Accuracy&quot;, &quot;Precision&quot;, &quot;Recall&quot;, &quot;F1 Score&quot;]<br/>values = [accuracy, precision, recall, f1]</p><p><a href=\"http://plt.bar\">plt.bar</a>(metrics, values)</p><p>plt.xlabel(&quot;Evaluation Metrics&quot;)<br/>plt.ylabel(&quot;Score&quot;)<br/>plt.title(&quot;Model Performance Evaluation&quot;)</p><p>plt.ylim(0, 1)</p><p>for i in range(len(values)):<br/>    plt.text(i, values[i] + 0.02, round(values[i], 2), ha=&apos;center&apos;)</p><p><a href=\"http://plt.show\">plt.show</a>()</p>",
+          "subject": "Basic Python Code",
+          "date": "2026-11-09T05:33:18.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "hemantpande446@gmail.com",
+                "name": "Hemant Pande"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Hemant Pande</span> &lt;<a href=\"mailto:hemantpande446@gmail.com\" class=\"mp_address_email\">hemantpande446@gmail.com</a>&gt;</span>",
+            "text": "\"Hemant Pande\" <hemantpande446@gmail.com>"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "hemantpande446@gmail.com",
+                "name": "Hemant Pande"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Hemant Pande</span> &lt;<a href=\"mailto:hemantpande446@gmail.com\" class=\"mp_address_email\">hemantpande446@gmail.com</a>&gt;</span>",
+            "text": "\"Hemant Pande\" <hemantpande446@gmail.com>"
+          },
+          "messageId": "<CAHsh+DNjGF-DbFy5Kvq2htKT7ygRpNTBQ=gYamELVkw3Fo5bwQ@mail.gmail.com>"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Code_Summary": [
+      {
+        "json": {
+          "text": "Here is a clear and quick summary of what the code does:\n\n### **Overview**\nThis code evaluates the performance of a binary classification model by comparing actual target values with predicted values, printing key performance scores, and visualizing them in a bar chart.\n\n---\n\n### **Step-by-Step Summary**\n\n1. **Defines Data**: \n   * Sets up two lists of binary data (`0`s and `1`s): `y_actual` (true values) and `y_predicted` (model's predictions).\n\n2. **Calculates Evaluation Metrics**: \n   * Uses `scikit-learn` to calculate four standard performance metrics:\n     * **Accuracy:** Overall correctness of predictions.\n     * **Precision:** Accuracy of positive predictions.\n     * **Recall:** Ability to find all positive instances.\n     * **F1 Score:** Harmonic mean balancing Precision and Recall.\n\n3. **Prints the Results**: \n   * Outputs the numerical scores for each of the 4 metrics to the console.\n\n4. **Visualizes the Scores**: \n   * Generates a **bar chart** using `matplotlib` comparing all four metrics.\n   * Sets the y-axis limit from **0 to 1**.\n   * Adds text labels above each bar displaying the rounded score (to 2 decimal places).\n   * Displays the final styled chart with appropriate axis labels and title (*\"Model Performance Evaluation\"*)."
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Comments_Additon": [
+      {
+        "json": {
+          "text": "Here is your code with detailed comments explaining what each part does:\n\n```python\n# Import evaluation metric functions from scikit-learn\nfrom sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score\n# Import matplotlib's pyplot module for data visualization (plotting graphs)\nimport matplotlib.pyplot as plt\n\n# Define the true (actual) target labels for the test dataset\ny_actual = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]\n\n# Define the predicted labels output by the classification model\ny_predicted = [1, 0, 1, 0, 0, 1, 1, 0, 1, 0]\n\n# Calculate Accuracy: overall proportion of correct predictions (both positive and negative)\naccuracy = accuracy_score(y_actual, y_predicted)\n\n# Calculate Precision: proportion of correctly predicted positive observations out of total predicted positives\nprecision = precision_score(y_actual, y_predicted)\n\n# Calculate Recall (Sensitivity): proportion of correctly predicted positive observations out of all actual positives\nrecall = recall_score(y_actual, y_predicted)\n\n# Calculate F1 Score: the harmonic mean of Precision and Recall (balances both metrics)\nf1 = f1_score(y_actual, y_predicted)\n\n# Print the calculated evaluation metrics to the console\nprint(\"Accuracy :\", accuracy)\nprint(\"Precision:\", precision)\nprint(\"Recall   :\", recall)\nprint(\"F1 Score :\", f1)\n\n# Create a list of metric names for the x-axis of the plot\nmetrics = [\"Accuracy\", \"Precision\", \"Recall\", \"F1 Score\"]\n\n# Create a list of corresponding calculated values for the y-axis of the plot\nvalues = [accuracy, precision, recall, f1]\n\n# Generate a bar chart with metric names on the x-axis and their values on the y-axis\nplt.bar(metrics, values)\n\n# Set the label for the X-axis\nplt.xlabel(\"Evaluation Metrics\")\n\n# Set the label for the Y-axis\nplt.ylabel(\"Score\")\n\n# Set the title of the plot\nplt.title(\"Model Performance Evaluation\")\n\n# Set the limits for the y-axis from 0 to 1 (since metric scores range between 0 and 1)\nplt.ylim(0, 1)\n\n# Loop through each bar to add the numerical value text label above each bar\nfor i in range(len(values)):\n    # Display the score value rounded to 2 decimal places, slightly above the top of each bar (+0.02)\n    plt.text(i, values[i] + 0.02, round(values[i], 2), ha='center')\n\n# Display the final plot window\nplt.show()\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Merge": [
+      {
+        "json": {
+          "text": "Here is your code with detailed comments explaining what each part does:\n\n```python\n# Import evaluation metric functions from scikit-learn\nfrom sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score\n# Import matplotlib's pyplot module for data visualization (plotting graphs)\nimport matplotlib.pyplot as plt\n\n# Define the true (actual) target labels for the test dataset\ny_actual = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]\n\n# Define the predicted labels output by the classification model\ny_predicted = [1, 0, 1, 0, 0, 1, 1, 0, 1, 0]\n\n# Calculate Accuracy: overall proportion of correct predictions (both positive and negative)\naccuracy = accuracy_score(y_actual, y_predicted)\n\n# Calculate Precision: proportion of correctly predicted positive observations out of total predicted positives\nprecision = precision_score(y_actual, y_predicted)\n\n# Calculate Recall (Sensitivity): proportion of correctly predicted positive observations out of all actual positives\nrecall = recall_score(y_actual, y_predicted)\n\n# Calculate F1 Score: the harmonic mean of Precision and Recall (balances both metrics)\nf1 = f1_score(y_actual, y_predicted)\n\n# Print the calculated evaluation metrics to the console\nprint(\"Accuracy :\", accuracy)\nprint(\"Precision:\", precision)\nprint(\"Recall   :\", recall)\nprint(\"F1 Score :\", f1)\n\n# Create a list of metric names for the x-axis of the plot\nmetrics = [\"Accuracy\", \"Precision\", \"Recall\", \"F1 Score\"]\n\n# Create a list of corresponding calculated values for the y-axis of the plot\nvalues = [accuracy, precision, recall, f1]\n\n# Generate a bar chart with metric names on the x-axis and their values on the y-axis\nplt.bar(metrics, values)\n\n# Set the label for the X-axis\nplt.xlabel(\"Evaluation Metrics\")\n\n# Set the label for the Y-axis\nplt.ylabel(\"Score\")\n\n# Set the title of the plot\nplt.title(\"Model Performance Evaluation\")\n\n# Set the limits for the y-axis from 0 to 1 (since metric scores range between 0 and 1)\nplt.ylim(0, 1)\n\n# Loop through each bar to add the numerical value text label above each bar\nfor i in range(len(values)):\n    # Display the score value rounded to 2 decimal places, slightly above the top of each bar (+0.02)\n    plt.text(i, values[i] + 0.02, round(values[i], 2), ha='center')\n\n# Display the final plot window\nplt.show()\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "text": "Here is a clear and quick summary of what the code does:\n\n### **Overview**\nThis code evaluates the performance of a binary classification model by comparing actual target values with predicted values, printing key performance scores, and visualizing them in a bar chart.\n\n---\n\n### **Step-by-Step Summary**\n\n1. **Defines Data**: \n   * Sets up two lists of binary data (`0`s and `1`s): `y_actual` (true values) and `y_predicted` (model's predictions).\n\n2. **Calculates Evaluation Metrics**: \n   * Uses `scikit-learn` to calculate four standard performance metrics:\n     * **Accuracy:** Overall correctness of predictions.\n     * **Precision:** Accuracy of positive predictions.\n     * **Recall:** Ability to find all positive instances.\n     * **F1 Score:** Harmonic mean balancing Precision and Recall.\n\n3. **Prints the Results**: \n   * Outputs the numerical scores for each of the 4 metrics to the console.\n\n4. **Visualizes the Scores**: \n   * Generates a **bar chart** using `matplotlib` comparing all four metrics.\n   * Sets the y-axis limit from **0 to 1**.\n   * Adds text labels above each bar displaying the rounded score (to 2 decimal places).\n   * Displays the final styled chart with appropriate axis labels and title (*\"Model Performance Evaluation\"*)."
+        },
+        "pairedItem": {
+          "item": 0,
+          "input": 1
+        }
+      }
+    ],
+    "Aggregate": [
+      {
+        "json": {
+          "text": [
+            "Here is your code with detailed comments explaining what each part does:\n\n```python\n# Import evaluation metric functions from scikit-learn\nfrom sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score\n# Import matplotlib's pyplot module for data visualization (plotting graphs)\nimport matplotlib.pyplot as plt\n\n# Define the true (actual) target labels for the test dataset\ny_actual = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]\n\n# Define the predicted labels output by the classification model\ny_predicted = [1, 0, 1, 0, 0, 1, 1, 0, 1, 0]\n\n# Calculate Accuracy: overall proportion of correct predictions (both positive and negative)\naccuracy = accuracy_score(y_actual, y_predicted)\n\n# Calculate Precision: proportion of correctly predicted positive observations out of total predicted positives\nprecision = precision_score(y_actual, y_predicted)\n\n# Calculate Recall (Sensitivity): proportion of correctly predicted positive observations out of all actual positives\nrecall = recall_score(y_actual, y_predicted)\n\n# Calculate F1 Score: the harmonic mean of Precision and Recall (balances both metrics)\nf1 = f1_score(y_actual, y_predicted)\n\n# Print the calculated evaluation metrics to the console\nprint(\"Accuracy :\", accuracy)\nprint(\"Precision:\", precision)\nprint(\"Recall   :\", recall)\nprint(\"F1 Score :\", f1)\n\n# Create a list of metric names for the x-axis of the plot\nmetrics = [\"Accuracy\", \"Precision\", \"Recall\", \"F1 Score\"]\n\n# Create a list of corresponding calculated values for the y-axis of the plot\nvalues = [accuracy, precision, recall, f1]\n\n# Generate a bar chart with metric names on the x-axis and their values on the y-axis\nplt.bar(metrics, values)\n\n# Set the label for the X-axis\nplt.xlabel(\"Evaluation Metrics\")\n\n# Set the label for the Y-axis\nplt.ylabel(\"Score\")\n\n# Set the title of the plot\nplt.title(\"Model Performance Evaluation\")\n\n# Set the limits for the y-axis from 0 to 1 (since metric scores range between 0 and 1)\nplt.ylim(0, 1)\n\n# Loop through each bar to add the numerical value text label above each bar\nfor i in range(len(values)):\n    # Display the score value rounded to 2 decimal places, slightly above the top of each bar (+0.02)\n    plt.text(i, values[i] + 0.02, round(values[i], 2), ha='center')\n\n# Display the final plot window\nplt.show()\n```",
+            "Here is a clear and quick summary of what the code does:\n\n### **Overview**\nThis code evaluates the performance of a binary classification model by comparing actual target values with predicted values, printing key performance scores, and visualizing them in a bar chart.\n\n---\n\n### **Step-by-Step Summary**\n\n1. **Defines Data**: \n   * Sets up two lists of binary data (`0`s and `1`s): `y_actual` (true values) and `y_predicted` (model's predictions).\n\n2. **Calculates Evaluation Metrics**: \n   * Uses `scikit-learn` to calculate four standard performance metrics:\n     * **Accuracy:** Overall correctness of predictions.\n     * **Precision:** Accuracy of positive predictions.\n     * **Recall:** Ability to find all positive instances.\n     * **F1 Score:** Harmonic mean balancing Precision and Recall.\n\n3. **Prints the Results**: \n   * Outputs the numerical scores for each of the 4 metrics to the console.\n\n4. **Visualizes the Scores**: \n   * Generates a **bar chart** using `matplotlib` comparing all four metrics.\n   * Sets the y-axis limit from **0 to 1**.\n   * Adds text labels above each bar displaying the rounded score (to 2 decimal places).\n   * Displays the final styled chart with appropriate axis labels and title (*\"Model Performance Evaluation\"*)."
+          ]
+        },
+        "pairedItem": [
+          {
+            "item": 0
+          },
+          {
+            "item": 1
+          }
+        ]
+      }
+    ],
+    "Basic LLM Chain": [
+      {
+        "json": {
+          "text": "Here is the email-ready HTML format of your message. It includes responsive container styling, standard email-safe fonts, and a full syntax-highlighted code block using a light developer theme (GitHub/VS Code style) for maximum compatibility across email clients (Gmail, Outlook, Apple Mail, etc.).\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Python Code & Summary</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #24292e; line-height: 1.6;\">\n\n  <!-- Main Email Wrapper -->\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background-color: #f4f6f8; padding: 20px 0;\">\n    <tr>\n      <td align=\"center\">\n        <!-- Main Container -->\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width: 680px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e1e4e8; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.04);\">\n          \n          <!-- Header Bar -->\n          <tr>\n            <td style=\"background-color: #0969da; padding: 20px 30px; color: #ffffff;\">\n              <h2 style=\"margin: 0; font-size: 20px; font-weight: 600;\">Code Review & Performance Summary</h2>\n            </td>\n          </tr>\n\n          <!-- Content Body -->\n          <tr>\n            <td style=\"padding: 30px;\">\n\n              <p style=\"margin-top: 0; font-size: 15px; color: #444444;\">\n                Here is your code with detailed comments explaining what each part does:\n              </p>\n\n              <!-- Code Block Header -->\n              <div style=\"background-color: #24292e; color: #adbac7; padding: 8px 16px; border-top-left-radius: 6px; border-top-right-radius: 6px; font-family: monospace; font-size: 12px; font-weight: bold; border-bottom: 1px solid #373e47;\">\n                PYTHON\n              </div>\n\n              <!-- Syntax-Highlighted Code Block -->\n              <pre style=\"margin: 0 0 25px 0; padding: 16px; background-color: #f6f8fa; border: 1px solid #d0d7de; border-top: none; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Monaco, monospace; font-size: 13px; line-height: 1.5; overflow-x: auto; color: #24292e;\">\n<span style=\"color: #6a737d; font-style: italic;\"># Import evaluation metric functions from scikit-learn</span>\n<span style=\"color: #cf222e; font-weight: bold;\">from</span> sklearn.metrics <span style=\"color: #cf222e; font-weight: bold;\">import</span> <span style=\"color: #8250df;\">accuracy_score</span>, <span style=\"color: #8250df;\">precision_score</span>, <span style=\"color: #8250df;\">recall_score</span>, <span style=\"color: #8250df;\">f1_score</span>\n<span style=\"color: #6a737d; font-style: italic;\"># Import matplotlib's pyplot module for data visualization (plotting graphs)</span>\n<span style=\"color: #cf222e; font-weight: bold;\">import</span> matplotlib.pyplot <span style=\"color: #cf222e; font-weight: bold;\">as</span> plt\n\n<span style=\"color: #6a737d; font-style: italic;\"># Define the true (actual) target labels for the test dataset</span>\ny_actual = [<span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">0</span>]\n\n<span style=\"color: #6a737d; font-style: italic;\"># Define the predicted labels output by the classification model</span>\ny_predicted = [<span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">1</span>, <span style=\"color: #0550ae;\">0</span>]\n\n<span style=\"color: #6a737d; font-style: italic;\"># Calculate Accuracy: overall proportion of correct predictions (both positive and negative)</span>\naccuracy = <span style=\"color: #8250df;\">accuracy_score</span>(y_actual, y_predicted)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Calculate Precision: proportion of correctly predicted positive observations out of total predicted positives</span>\nprecision = <span style=\"color: #8250df;\">precision_score</span>(y_actual, y_predicted)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Calculate Recall (Sensitivity): proportion of correctly predicted positive observations out of all actual positives</span>\nrecall = <span style=\"color: #8250df;\">recall_score</span>(y_actual, y_predicted)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Calculate F1 Score: the harmonic mean of Precision and Recall (balances both metrics)</span>\nf1 = <span style=\"color: #8250df;\">f1_score</span>(y_actual, y_predicted)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Print the calculated evaluation metrics to the console</span>\n<span style=\"color: #6f42c1;\">print</span>(<span style=\"color: #0a3069;\">\"Accuracy :\"</span>, accuracy)\n<span style=\"color: #6f42c1;\">print</span>(<span style=\"color: #0a3069;\">\"Precision:\"</span>, precision)\n<span style=\"color: #6f42c1;\">print</span>(<span style=\"color: #0a3069;\">\"Recall   :\"</span>, recall)\n<span style=\"color: #6f42c1;\">print</span>(<span style=\"color: #0a3069;\">\"F1 Score :\"</span>, f1)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Create a list of metric names for the x-axis of the plot</span>\nmetrics = [<span style=\"color: #0a3069;\">\"Accuracy\"</span>, <span style=\"color: #0a3069;\">\"Precision\"</span>, <span style=\"color: #0a3069;\">\"Recall\"</span>, <span style=\"color: #0a3069;\">\"F1 Score\"</span>]\n\n<span style=\"color: #6a737d; font-style: italic;\"># Create a list of corresponding calculated values for the y-axis of the plot</span>\nvalues = [accuracy, precision, recall, f1]\n\n<span style=\"color: #6a737d; font-style: italic;\"># Generate a bar chart with metric names on the x-axis and their values on the y-axis</span>\nplt.<span style=\"color: #8250df;\">bar</span>(metrics, values)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Set the label for the X-axis</span>\nplt.<span style=\"color: #8250df;\">xlabel</span>(<span style=\"color: #0a3069;\">\"Evaluation Metrics\"</span>)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Set the label for the Y-axis</span>\nplt.<span style=\"color: #8250df;\">ylabel</span>(<span style=\"color: #0a3069;\">\"Score\"</span>)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Set the title of the plot</span>\nplt.<span style=\"color: #8250df;\">title</span>(<span style=\"color: #0a3069;\">\"Model Performance Evaluation\"</span>)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Set the limits for the y-axis from 0 to 1 (since metric scores range between 0 and 1)</span>\nplt.<span style=\"color: #8250df;\">ylim</span>(<span style=\"color: #0550ae;\">0</span>, <span style=\"color: #0550ae;\">1</span>)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Loop through each bar to add the numerical value text label above each bar</span>\n<span style=\"color: #cf222e; font-weight: bold;\">for</span> i <span style=\"color: #cf222e; font-weight: bold;\">in</span> <span style=\"color: #6f42c1;\">range</span>(<span style=\"color: #6f42c1;\">len</span>(values)):\n    <span style=\"color: #6a737d; font-style: italic;\"># Display the score value rounded to 2 decimal places, slightly above the top of each bar (+0.02)</span>\n    plt.<span style=\"color: #8250df;\">text</span>(i, values[i] + <span style=\"color: #0550ae;\">0.02</span>, <span style=\"color: #6f42c1;\">round</span>(values[i], <span style=\"color: #0550ae;\">2</span>), ha=<span style=\"color: #0a3069;\">'center'</span>)\n\n<span style=\"color: #6a737d; font-style: italic;\"># Display the final plot window</span>\nplt.<span style=\"color: #8250df;\">show</span>()</pre>\n\n              <hr style=\"border: none; border-top: 1px solid #e1e4e8; margin: 30px 0;\">\n\n              <p style=\"font-size: 15px; margin-bottom: 20px; color: #444444;\">\n                Here is a clear and quick summary of what the code does:\n              </p>\n\n              <!-- Overview Section -->\n              <h3 style=\"color: #1f2328; font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 8px; border-bottom: 2px solid #0969da; display: inline-block; padding-bottom: 2px;\">\n                Overview\n              </h3>\n              <p style=\"margin-top: 5px; margin-bottom: 20px; font-size: 14px; color: #57606a;\">\n                This code evaluates the performance of a binary classification model by comparing actual target values with predicted values, printing key performance scores, and visualizing them in a bar chart.\n              </p>\n\n              <!-- Step-by-Step Summary Section -->\n              <h3 style=\"color: #1f2328; font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #0969da; display: inline-block; padding-bottom: 2px;\">\n                Step-by-Step Summary\n              </h3>\n\n              <ol style=\"margin: 0; padding-left: 20px; font-size: 14px; color: #24292e;\">\n                <li style=\"margin-bottom: 12px;\">\n                  <strong>Defines Data</strong>:\n                  <ul style=\"margin: 6px 0 0 0; padding-left: 20px; color: #57606a;\">\n                    <li>Sets up two lists of binary data (<code style=\"background-color: #eff1f3; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 12px;\">0</code>s and <code style=\"background-color: #eff1f3; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 12px;\">1</code>s): <code style=\"background-color: #eff1f3; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #0969da;\">y_actual</code> (true values) and <code style=\"background-color: #eff1f3; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #0969da;\">y_predicted</code> (model's predictions).</li>\n                  </ul>\n                </li>\n\n                <li style=\"margin-bottom: 12px;\">\n                  <strong>Calculates Evaluation Metrics</strong>:\n                  <ul style=\"margin: 6px 0 0 0; padding-left: 20px; color: #57606a;\">\n                    <li>Uses <code style=\"background-color: #eff1f3; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 12px;\">scikit-learn</code> to calculate four standard performance metrics:\n                      <ul style=\"margin-top: 4px; padding-left: 18px;\">\n                        <li><strong>Accuracy:</strong> Overall correctness of predictions.</li>\n                        <li><strong>Precision:</strong> Accuracy of positive predictions.</li>\n                        <li><strong>Recall:</strong> Ability to find all positive instances.</li>\n                        <li><strong>F1 Score:</strong> Harmonic mean balancing Precision and Recall.</li>\n                      </ul>\n                    </li>\n                  </ul>\n                </li>\n\n                <li style=\"margin-bottom: 12px;\">\n                  <strong>Prints the Results</strong>:\n                  <ul style=\"margin: 6px 0 0 0; padding-left: 20px; color: #57606a;\">\n                    <li>Outputs the numerical scores for each of the 4 metrics to the console.</li>\n                  </ul>\n                </li>\n\n                <li style=\"margin-bottom: 0;\">\n                  <strong>Visualizes the Scores</strong>:\n                  <ul style=\"margin: 6px 0 0 0; padding-left: 20px; color: #57606a;\">\n                    <li>Generates a <strong>bar chart</strong> using <code style=\"background-color: #eff1f3; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 12px;\">matplotlib</code> comparing all four metrics.</li>\n                    <li>Sets the y-axis limit from <strong>0 to 1</strong>.</li>\n                    <li>Adds text labels above each bar displaying the rounded score (to 2 decimal places).</li>\n                    <li>Displays the final styled chart with appropriate axis labels and title (<em>\"Model Performance Evaluation\"</em>).</li>\n                  </ul>\n                </li>\n              </ol>\n\n            </td>\n          </tr>\n\n          <!-- Footer -->\n          <tr>\n            <td style=\"background-color: #f6f8fa; padding: 15px 30px; text-align: center; border-top: 1px solid #e1e4e8; font-size: 12px; color: #6e7781;\">\n              Generated automatically for code review purposes.\n            </td>\n          </tr>\n\n        </table>\n      </td>\n    </tr>\n  </table>\n\n</body>\n</html>\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Comments_Additon",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code_Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Comments_Additon",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Code_Summary",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comments_Additon": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Summary": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "afc020b7-aa7e-4ee1-9c4a-9dac723d6037",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0325695fac4b2054e229bfafa6ce1b6333f222bfeeb41f5d8f2270ed52c883b7"
+  },
+  "nodeGroups": [],
+  "id": "ttq3Nmd6GnxZQHit",
+  "tags": []
+}
