@@ -175,7 +175,7 @@ first workflow/
 
 **Hemant Pande**
 
-GitHub: [@Hemant-406](https://github.com/Hemant-406)
+GitHub: [@Hemant406](https://github.com/Hemant406)
 
 ---
 
